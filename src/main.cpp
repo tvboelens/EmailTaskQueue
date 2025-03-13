@@ -1,12 +1,58 @@
 #include <iostream>
 #include <fstream>
+#include <soci/soci.h>
+#include <soci/sqlite3/soci-sqlite3.h>
 #include <nlohmann/json.hpp>
 #include "../include/email_sender.h"
+#include "../include/worker.h"
+#include <spdlog/spdlog.h>
 
 using json = nlohmann::json;
 
+void createJobsTable(soci::session &db)
+{
+    // Drop the existing table if it exists
+    db << "DROP TABLE IF EXISTS jobs";
+
+    // Create the new jobs table
+    db << R"(
+        CREATE TABLE jobs (
+            id TEXT PRIMARY KEY,               -- Unique job ID (string)
+            name TEXT NOT NULL,                -- Job name
+            args TEXT NOT NULL,                -- JSON-encoded arguments
+            queue TEXT DEFAULT 'default',      -- Job queue
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- Creation timestamp
+            next_execution_at DATETIME,        -- When to execute next (nullable)
+            last_executed_at DATETIME,         -- Last execution timestamp (nullable)
+            attempts INTEGER DEFAULT 0,        -- Number of retry attempts
+            state TEXT DEFAULT 'waiting',      -- Job state
+            error_details TEXT,                -- Error message if failed
+            reserved_by TEXT                   -- Worker ID processing this job
+        )
+    )";
+
+    spdlog::info("Table 'jobs' created successfully!");
+}
+
 int main()
 {
+    try
+    {
+        // Open an SQLite database (or create it if it doesn't exist)
+        soci::session db(soci::sqlite3, "database.db");
+
+        // Create the jobs table
+        createJobsTable(db);
+    }
+    catch (const std::exception &e)
+    {
+        spdlog::error("Database error: {}", e.what());
+    }
+
+    Worker w;
+    w.run();
+
+    /*
     // Load JSON data from the file
     std::ifstream input_file("../data/email_data.json");
     if (!input_file.is_open())
@@ -40,6 +86,7 @@ int main()
 
     // Call the function to send an email
     send_email(from_email, to_email, subject, body, smtp_server, smtp_user, smtp_password);
+    */
 
     return 0;
 }
