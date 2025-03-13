@@ -5,6 +5,7 @@
 #include <nlohmann/json.hpp>
 #include "../include/email_sender.h"
 #include "../include/worker.h"
+#include "../include/queueable.h"
 #include <spdlog/spdlog.h>
 
 using json = nlohmann::json;
@@ -48,6 +49,10 @@ int main()
     {
         spdlog::error("Database error: {}", e.what());
     }
+
+    json args = {{"name", "some_name"},{"task", "email"}, {"recipient", "user@example.com"}};
+    Queueable q;
+    q.dispatch(args);
 
     Worker w;
     w.run();
