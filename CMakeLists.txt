@@ -21,7 +21,7 @@ set(SOURCES
     #src/redis_queue.cpp
     #src/email_sender.cpp
     src/worker.cpp
-    #src/queueable.cpp
+    src/queueable.cpp
     src/job.cpp
     src/randomhex.cpp
 )
