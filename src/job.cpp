@@ -32,25 +32,41 @@ Job::Job(const json &args)
 
 void Job::save() const{
     sqlite3 *db;
+    sqlite3_stmt *stmt;
     char *errMsg = nullptr;
 
-    if (sqlite3_open("jobs.db", &db) != SQLITE_OK)
+    if (sqlite3_open("database.db", &db) != SQLITE_OK)
     {
         spdlog::error("Failed to open database.");
         return;
     }
 
-    std::string sql = "INSERT INTO jobs (id, args, status) VALUES ('" + id + "', '" + args.dump() + "', 'pending');";
+    // SQL INSERT statement using prepared statements
+    const char *sql = "INSERT INTO jobs (name, id, args, state) VALUES ('Job', ?, ?, 'waiting');";
 
-    if (sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &errMsg) != SQLITE_OK)
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
     {
-        spdlog::error("SQL error: {}", errMsg);
-        sqlite3_free(errMsg);
+        spdlog::error("Failed to prepare statement: {}", sqlite3_errmsg(db));
+        sqlite3_close(db);
+        return;
+    }
+
+    // Bind values safely
+    sqlite3_bind_text(stmt, 1, id.c_str(), -1, SQLITE_STATIC);
+    std::string args_str = args.dump();
+    sqlite3_bind_text(stmt, 2, args_str.c_str(), -1, SQLITE_STATIC);
+
+    // Execute the statement
+    if (sqlite3_step(stmt) != SQLITE_DONE)
+    {
+        spdlog::error("Failed to insert job: {}", sqlite3_errmsg(db));
     }
     else
     {
         spdlog::info("Job saved to database: {}", id);
     }
 
+    // Clean up
+    sqlite3_finalize(stmt);
     sqlite3_close(db);
 }
