@@ -28,7 +28,7 @@ void Worker::run()
             sleep(polling_interval);
             counter += 1;
         }
-    } while (counter<15);
+    } while (counter<7);
     spdlog::info("Shutting down Worker {}", worker_id);
 }
 
@@ -40,11 +40,10 @@ std::unique_ptr<Job> Worker::next_job(){
     if (sqlite3_open("database.db", &db) != SQLITE_OK)
     {
         spdlog::error("Failed to open database.");
-        std::unique_ptr<Job> ptr = nullptr;
-        return ptr;
+        return nullptr;
     }
 
-    std::string sql = "SELECT id, args FROM jobs WHERE status = 'waiting' ORDER BY rowid ASC LIMIT 1;";
+    std::string sql = "SELECT id, args FROM jobs WHERE state = 'waiting' ORDER BY rowid ASC LIMIT 1;";
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK)
     {
         if (sqlite3_step(stmt) == SQLITE_ROW)
