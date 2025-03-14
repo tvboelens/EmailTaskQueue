@@ -19,9 +19,10 @@ void Worker::run()
         std::unique_ptr<Job> job = next_job();
         if (job!=0)
         {
-            spdlog::info("Job found, executing");
+            spdlog::info("Executing job: {}", job->id);
             // execute_job(*job);
             // cleanup_job(*job);
+            counter += 1;
         }
         else
         {
@@ -48,10 +49,12 @@ std::unique_ptr<Job> Worker::next_job(){
     {
         if (sqlite3_step(stmt) == SQLITE_ROW)
         {
-            job.id = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
+            std::string id = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
             std::string args_str = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
-            job.args = nlohmann::json::parse(args_str);
-            spdlog::info("Fetched next job: {}", job.id);
+            json args = nlohmann::json::parse(args_str);
+            std::unique_ptr<Job> job{new Job{id, args}};
+            spdlog::info("Fetched next job: {}", job->id);
+            return job;
         }
         else
         {
