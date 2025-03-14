@@ -7,11 +7,13 @@
 #include <sqlite3.h>
 
 // Constructor - Assigns a unique ID and sets args
-Job::Job(const json &args)
+Job::Job(const json &args_): args{args_}
 {
-    
-    this->id = "job_" + generateHex(12);
-    this->args = args;
+    id = "job_" + generateHex(12);
+}
+
+Job::Job(const std::string &id_, const json &args_): id{id_}, args{args_}
+{
 }
 
 // Generates a random hexadecimal string
