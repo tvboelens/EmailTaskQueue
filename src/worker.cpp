@@ -9,11 +9,21 @@ Worker::Worker()
     worker_id = "wrk_" + generateHex(8);
 }
 
+Worker::~Worker()
+{
+    // Close the database connection if an error occurs or if the worker is destroyed
+    if (db)
+    {
+        sqlite3_close_v2(db);
+        db = nullptr;
+        spdlog::info("Shut down database connection: {}", worker_id);
+    }
+}
+
 
 void Worker::run()
 {
     spdlog::info("Worker {} ready", worker_id);
-    sqlite3 *db;
     if (sqlite3_open("database.db", &db) != SQLITE_OK)
     {
         spdlog::error("Failed to open database.");
@@ -40,14 +50,12 @@ void Worker::run()
         }
     } while (counter<7);
     spdlog::info("Worker {} shutting down connection to database", worker_id);
-    sqlite3_close_v2(db);
     spdlog::info("Shutting down Worker {}", worker_id);
 }
 
 std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
     
     sqlite3_stmt *stmt;
-    //Job job(nlohmann::json{});
     const char *sql = R"(
         UPDATE Jobs 
         SET reserved_by = ? 
@@ -59,7 +67,6 @@ std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
         RETURNING id, args, reserved_by, state;
     )";
 
-    //std::string sql = "SELECT id, args FROM jobs WHERE state = 'waiting' ORDER BY rowid ASC LIMIT 1;";
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) == SQLITE_OK)
     {
         // Bind worker_id as a TEXT value
@@ -72,14 +79,12 @@ std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
             std::unique_ptr<Job> job{new Job{id, args}};
             spdlog::info("Fetched next job: {}", job->id);
             sqlite3_finalize(stmt);
-            //sqlite3_close(db);
             return job;
         }
         else
         {
             spdlog::warn("No pending jobs found.");
             sqlite3_finalize(stmt);
-            //sqlite3_close(db);
             return nullptr;
         }
     }
@@ -90,7 +95,6 @@ std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
     }
 
     sqlite3_finalize(stmt);
-    //sqlite3_close(db);
     return nullptr;
 }
 
