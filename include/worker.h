@@ -13,9 +13,15 @@ class Worker
 private:
     int polling_interval;
     std::string worker_id;
+    sqlite3 *db;
 
 public:
     Worker();
+    ~Worker();
+    // Prevent copying
+    Worker(const Worker &) = delete;
+    Worker &operator=(const Worker &) = delete;
+    
     void run();
     std::unique_ptr<Job> next_job(sqlite3 *db);
     //Job check_for_jobs();
