@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <soci/soci.h>
-#include <soci/sqlite3/soci-sqlite3.h>
+#include <sqlite3.h>
 #include <nlohmann/json.hpp>
 #include "../include/email_sender.h"
 #include "../include/worker.h"
@@ -10,13 +9,30 @@
 
 using json = nlohmann::json;
 
-void createJobsTable(soci::session &db)
+bool createJobsTable(sqlite3 *db)
 {
     // Drop the existing table if it exists
-    db << "DROP TABLE IF EXISTS jobs";
+    const char *sql = "DROP TABLE IF EXISTS jobs";
+    sqlite3_stmt *stmt;
+    char *errMsg = nullptr;
 
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        spdlog::error("Failed to prepare statement: {}", sqlite3_errmsg(db));
+        sqlite3_close(db);
+        return false;
+    }
+    if (sqlite3_step(stmt) != SQLITE_DONE)
+    {
+        spdlog::error("Failed to drop jobs table: {}", sqlite3_errmsg(db));
+    }
+    else
+    {
+        spdlog::info("Job saved to database: {}");
+    }
+    
     // Create the new jobs table
-    db << R"(
+    sql= R"(
         CREATE TABLE jobs (
             id TEXT PRIMARY KEY,               -- Unique job ID (string)
             name TEXT NOT NULL,                -- Job name
@@ -32,26 +48,45 @@ void createJobsTable(soci::session &db)
         )
     )";
 
-    spdlog::info("Table 'jobs' created successfully!");
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        spdlog::error("Failed to prepare statement: {}", sqlite3_errmsg(db));
+        sqlite3_close(db);
+        return false;
+    }
+    if (sqlite3_step(stmt) != SQLITE_DONE)
+    {
+        spdlog::error("Failed to create jobs table: {}", sqlite3_errmsg(db));
+    }
+    else
+    {
+        spdlog::info("Table 'jobs' created successfully!");
+    }
+    return true;
 }
 
 int main()
 {
-    try
-    {
-        // Open an SQLite database (or create it if it doesn't exist)
-        soci::session db(soci::sqlite3, "database.db");
+    
+    
+    // Open an SQLite database (or create it if it doesn't exist)
+    sqlite3 *db;
 
-        // Create the jobs table
-        createJobsTable(db);
-    }
-    catch (const std::exception &e)
+    if (sqlite3_open("database.db", &db) != SQLITE_OK)
     {
-        spdlog::error("Database error: {}", e.what());
+        spdlog::error("Failed to open database.");
+        return 1;
+    }
+    else
+    {// Create the jobs table
+        if (createJobsTable(db)==false){
+        return 1;}
     }
 
     json args = {{"name", "some_name"},{"task", "email"}, {"recipient", "user@example.com"}};
     Queueable q;
+    q.dispatch(args);
+    q.dispatch(args);
     q.dispatch(args);
 
     Worker w;
