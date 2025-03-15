@@ -14,6 +14,7 @@ find_package(Threads REQUIRED)
 find_package(SOCI REQUIRED COMPONENTS core sqlite3)
 find_package(fmt REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(SQLite3 REQUIRED)
 
 # Add source files
 set(SOURCES
@@ -37,4 +38,5 @@ target_link_libraries(email_task_queue PRIVATE
     SOCI::soci_core SOCI::soci_sqlite3
     fmt::fmt
     nlohmann_json::nlohmann_json
+    SQLite::SQLite3
 )
