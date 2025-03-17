@@ -101,3 +101,15 @@ void Job::set_reserved_by(std::optional<std::string> worker_id)
 {
     reserved_by = std::move(worker_id);
 }
+
+void Job::increase_attempts()
+{
+    attempts += 1;
+}
+
+
+
+void Job::set_state(const std::string &state_)
+{
+    state = state_;
+}

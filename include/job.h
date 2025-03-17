@@ -46,6 +46,9 @@ public:
     void save() const;
     std::string get_id() const;
     void set_reserved_by(std::optional<std::string> worker_id);
+    void increase_attempts();
+    void set_latest_attempt(const std::chrono::system_clock::time_point &time);
+    void set_state(const std::string &state_);
 
     // private:
     //     static std::string generate_random_id(size_t length);
