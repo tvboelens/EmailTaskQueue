@@ -1,5 +1,6 @@
 #include "../include/worker.h"
 
+#include <chrono>
 #include <spdlog/spdlog.h>
 #include <unistd.h>
 
@@ -40,7 +41,7 @@ void Worker::run()
         {
             spdlog::info("Executing job: {}", job->get_id());
             // execute_job(*job);
-            // cleanup_job(*job);
+            cleanup_job(*job);
             counter += 1;
         }
         else
@@ -98,8 +99,14 @@ std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
     return nullptr;
 }
 
-void Worker::cleanup_job(const Job &job)
+void Worker::cleanup_job(Job &job)
 {
-    
+    job.set_reserved_by(std::nullopt);
+    job.increase_attempts();
+    std::chrono::system_clock::time_point time = std::chrono::system_clock::now();
+    job.set_latest_attempt_to_now();
+    job.set_state("succeeded");
+    spdlog::info("Done cleaning up job {}, saving...", job.get_id());
     job.save();
+    spdlog::info("Saved job: {}", job.get_id());
 }
