@@ -37,11 +37,18 @@ This project is a job queue system implemented in C++ that allows email sending 
 
 ### Building the Project
 
+If you want to build using only CMake, runt the following commands:
 ``` 
 mkdir build && cd build
 cmake ..
 make
 ```
+If you want to use Ninja for faster building, run:
+```
+cmake -B build -GNinja .
+ninja -C build
+```
+The target binary is then created in the `build/` folder.
 ### Usage
 
 In the current version database configuration is done in `src/main.cpp`. Similarly, some dummy jobs are dispatched in `src/main.cpp` and a worker is started there as well. Change the code for other configurations.
