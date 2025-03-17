@@ -21,7 +21,6 @@ private:
     std::chrono::system_clock::time_point created_at;
     const unsigned char *next_execution_at;
     const unsigned char *last_executed_at;
-    int attempts;
     std::string state;
     const unsigned char *error_details;
     const unsigned char *reserved_by;
