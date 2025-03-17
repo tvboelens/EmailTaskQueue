@@ -10,8 +10,8 @@
 Job::Job(const json &args_,
          const std::string &queue_,
          const int &attempts_,
-         std::optional<std::string> next_execution_at_,
-         std::optional<std::string> last_executed_at_,
+         std::optional<std::chrono::system_clock::time_point> next_execution_at_,
+         std::optional<std::chrono::system_clock::time_point> last_executed_at_,
          const std::string &state_,
          std::optional<std::string> error_details_,
          std::optional<std::string> reserved_by_) : args{args_},
@@ -32,20 +32,20 @@ Job::Job(const std::string &id_,
          const json &args_,
          const std::string &queue_,
          const int &attempts_,
-         std::optional<std::string> next_execution_at_,
-         std::optional<std::string> last_executed_at_,
+         std::optional<std::chrono::system_clock::time_point> next_execution_at_,
+         std::optional<std::chrono::system_clock::time_point> last_executed_at_,
          const std::string &state_,
          std::optional<std::string> error_details_,
          std::optional<std::string> reserved_by_) : id{id_},
-                                                                   args{args_},
-                                                                   name{"log"},
-                                                                   queue{queue_},
-                                                                   attempts{attempts_},
-                                                                   next_execution_at{next_execution_at_},
-                                                                   last_executed_at{last_executed_at_},
-                                                                   state{state_},
-                                                                   error_details{error_details_},
-                                                                   reserved_by{reserved_by_}
+                                                    args{args_},
+                                                    name{"log"},
+                                                    queue{queue_},
+                                                    attempts{attempts_},
+                                                    next_execution_at{next_execution_at_},
+                                                    last_executed_at{last_executed_at_},
+                                                    state{state_},
+                                                    error_details{error_details_},
+                                                    reserved_by{reserved_by_}
 {
     created_at = std::chrono::system_clock::now();
 }
@@ -62,6 +62,7 @@ void Job::save() const{
         return;
     }
 
+    // TODO: This SQL statement has to be modified to update table instead of inserting
     // SQL INSERT statement using prepared statements
     const char *sql = "INSERT INTO jobs (name, id, args, state) VALUES ('Job', ?, ?, 'waiting');";
 
@@ -107,9 +108,13 @@ void Job::increase_attempts()
     attempts += 1;
 }
 
-
+void Job::set_latest_attempt_to_now()
+{
+    last_executed_at = std::chrono::system_clock::now();
+}
 
 void Job::set_state(const std::string &state_)
 {
     state = state_;
+    //TODO: check if values are allowed and throw error if needed
 }
