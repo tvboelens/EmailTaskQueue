@@ -19,29 +19,30 @@ private:
     json args;
     int attempts;
     std::chrono::system_clock::time_point created_at;
-    const unsigned char *next_execution_at;
-    const unsigned char *last_executed_at;
+    std::optional<std::string> next_execution_at;
+    std::optional<std::string> last_executed_at;
     std::string state;
-    const unsigned char *error_details;
-    const unsigned char *reserved_by;
+    std::optional<std::string> error_details;
+    std::optional<std::string> reserved_by;
+
 public:
-    Job(const json &args_, 
-         const std::string &queue_ = "default",
-         const int &attempts_ = 0, 
-         const unsigned char *next_execution_at_ = nullptr,
-         const unsigned char *last_executed_at_ = nullptr,
-         const std::string &state_ = "waiting",
-         const unsigned char *error_details_ = nullptr,
-         const unsigned char *reserved_by_ = nullptr);
+    Job(const json &args_,
+        const std::string &queue_ = "default",
+        const int &attempts_ = 0,
+        std::optional<std::string> next_execution_at_ = std::nullopt,
+        std::optional<std::string> last_executed_at_ = std::nullopt,
+        const std::string &state_ = "waiting",
+        std::optional<std::string> error_details_ = std::nullopt,
+        std::optional<std::string> reserved_by_ = std::nullopt);
     Job(const std::string &id_,
         const json &args_,
         const std::string &queue_ = "default",
         const int &attempts_ = 0,
-        const unsigned char *next_execution_at_ = nullptr,
-        const unsigned char *last_executed_at_ = nullptr,
+        std::optional<std::string> next_execution_at_ = std::nullopt,
+        std::optional<std::string> last_executed_at_ = std::nullopt,
         const std::string &state_ = "waiting",
-        const unsigned char *error_details_ = nullptr,
-        const unsigned char *reserved_by_ = nullptr);
+        std::optional<std::string> error_details_ = std::nullopt,
+        std::optional<std::string> reserved_by_ = std::nullopt);
     void save() const;
     std::string get_id() const;
 

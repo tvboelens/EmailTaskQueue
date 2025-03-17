@@ -7,45 +7,45 @@
 #include <sqlite3.h>
 
 // Constructor - Assigns a unique ID and sets args
-Job::Job(const json &args_, 
+Job::Job(const json &args_,
          const std::string &queue_,
-         const int &attempts_, 
-         const unsigned char *next_execution_at_,
-         const unsigned char *last_executed_at_,
+         const int &attempts_,
+         std::optional<std::string> next_execution_at_,
+         std::optional<std::string> last_executed_at_,
          const std::string &state_,
-         const unsigned char *error_details_,
-         const unsigned char *reserved_by_) : args{args_},
-                                              name{"log"},
-                                              queue{queue_},
-                                              attempts{attempts_},
-                                              next_execution_at{next_execution_at_},
-                                              last_executed_at{last_executed_at_},
-                                              state{state_},
-                                              error_details{error_details_},
-                                              reserved_by{reserved_by_}
+         std::optional<std::string> error_details_,
+         std::optional<std::string> reserved_by_) : args{args_},
+                                                    name{"log"},
+                                                    queue{queue_},
+                                                    attempts{attempts_},
+                                                    next_execution_at{next_execution_at_},
+                                                    last_executed_at{last_executed_at_},
+                                                    state{state_},
+                                                    error_details{error_details_},
+                                                    reserved_by{reserved_by_}
 {
     created_at = std::chrono::system_clock::now();
     id = "job_" + generateHex(12);
 }
 
-Job::Job(const std::string &id_, 
+Job::Job(const std::string &id_,
          const json &args_,
          const std::string &queue_,
          const int &attempts_,
-         const unsigned char *next_execution_at_,
-         const unsigned char *last_executed_at_,
+         std::optional<std::string> next_execution_at_,
+         std::optional<std::string> last_executed_at_,
          const std::string &state_,
-         const unsigned char *error_details_,
-         const unsigned char *reserved_by_) : id{id_},
-                                              args{args_},
-                                              name{"log"},
-                                              queue{queue_},
-                                              attempts{attempts_},
-                                              next_execution_at{next_execution_at_},
-                                              last_executed_at{last_executed_at_},
-                                              state{state_},
-                                              error_details{error_details_},
-                                              reserved_by{reserved_by_}
+         std::optional<std::string> error_details_,
+         std::optional<std::string> reserved_by_) : id{id_},
+                                                                   args{args_},
+                                                                   name{"log"},
+                                                                   queue{queue_},
+                                                                   attempts{attempts_},
+                                                                   next_execution_at{next_execution_at_},
+                                                                   last_executed_at{last_executed_at_},
+                                                                   state{state_},
+                                                                   error_details{error_details_},
+                                                                   reserved_by{reserved_by_}
 {
     created_at = std::chrono::system_clock::now();
 }
