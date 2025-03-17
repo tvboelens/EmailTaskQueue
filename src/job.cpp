@@ -7,30 +7,49 @@
 #include <sqlite3.h>
 
 // Constructor - Assigns a unique ID and sets args
-Job::Job(const json &args_): args{args_}
+Job::Job(const json &args_, 
+         const std::string &queue_,
+         const int &attempts_, 
+         const unsigned char *next_execution_at_,
+         const unsigned char *last_executed_at_,
+         const std::string &state_,
+         const unsigned char *error_details_,
+         const unsigned char *reserved_by_) : args{args_},
+                                              name{"log"},
+                                              queue{queue_},
+                                              attempts{attempts_},
+                                              next_execution_at{next_execution_at_},
+                                              last_executed_at{last_executed_at_},
+                                              state{state_},
+                                              error_details{error_details_},
+                                              reserved_by{reserved_by_}
 {
+    created_at = std::chrono::system_clock::now();
     id = "job_" + generateHex(12);
 }
 
-Job::Job(const std::string &id_, const json &args_): id{id_}, args{args_}
+Job::Job(const std::string &id_, 
+         const json &args_,
+         const std::string &queue_,
+         const int &attempts_,
+         const unsigned char *next_execution_at_,
+         const unsigned char *last_executed_at_,
+         const std::string &state_,
+         const unsigned char *error_details_,
+         const unsigned char *reserved_by_) : id{id_},
+                                              args{args_},
+                                              name{"log"},
+                                              queue{queue_},
+                                              attempts{attempts_},
+                                              next_execution_at{next_execution_at_},
+                                              last_executed_at{last_executed_at_},
+                                              state{state_},
+                                              error_details{error_details_},
+                                              reserved_by{reserved_by_}
 {
+    created_at = std::chrono::system_clock::now();
 }
 
-// Generates a random hexadecimal string
-/* std::string Job::generate_random_id(size_t length)
-{
-    static const char hex_chars[] = "0123456789abcdef";
-    std::random_device rd;
-    std::mt19937 gen(rd());                         // Mersenne Twister PRNG
-    std::uniform_int_distribution<> distrib(0, 15); // Values from 0 to 15 (hex range)
-
-    std::stringstream ss;
-    for (size_t i = 0; i < length; ++i)
-    {
-        ss << hex_chars[distrib(gen)];
-    }
-    return ss.str();
-}*/
 
 void Job::save() const{
     sqlite3 *db;
@@ -71,4 +90,9 @@ void Job::save() const{
     // Clean up
     sqlite3_finalize(stmt);
     sqlite3_close(db);
+}
+
+std::string Job::get_id() const
+{
+    return id;
 }

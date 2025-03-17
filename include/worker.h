@@ -24,8 +24,6 @@ public:
     
     void run();
     std::unique_ptr<Job> next_job(sqlite3 *db);
-    //Job check_for_jobs();
-    //void reserve_job(const Job &job);
     //void execute_job(const Job &job);
     void cleanup_job(const Job &job);
 };

@@ -38,7 +38,7 @@ void Worker::run()
         std::unique_ptr<Job> job = next_job(db);
         if (job!=0)
         {
-            spdlog::info("Executing job: {}", job->id);
+            spdlog::info("Executing job: {}", job->get_id());
             // execute_job(*job);
             // cleanup_job(*job);
             counter += 1;
@@ -77,7 +77,7 @@ std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
             std::string args_str = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
             json args = nlohmann::json::parse(args_str);
             std::unique_ptr<Job> job{new Job{id, args}};
-            spdlog::info("Fetched next job: {}", job->id);
+            spdlog::info("Fetched next job: {}", job->get_id());
             sqlite3_finalize(stmt);
             return job;
         }
