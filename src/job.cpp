@@ -96,3 +96,8 @@ std::string Job::get_id() const
 {
     return id;
 }
+
+void Job::set_reserved_by(std::optional<std::string> worker_id)
+{
+    reserved_by = std::move(worker_id);
+}

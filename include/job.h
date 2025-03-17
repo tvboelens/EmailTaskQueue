@@ -45,6 +45,7 @@ public:
         std::optional<std::string> reserved_by_ = std::nullopt);
     void save() const;
     std::string get_id() const;
+    void set_reserved_by(std::optional<std::string> worker_id);
 
     // private:
     //     static std::string generate_random_id(size_t length);
