@@ -189,3 +189,32 @@ void Job::set_state(const std::string &state_)
     state = state_;
     //TODO: check if values are allowed and throw error if needed
 }
+
+void Job::set_queue(const std::string &queue_)
+{
+    queue = queue_;
+}
+
+void Job::set_error_details(std::optional<std::string> error_msg)
+{
+    if (error_msg.has_value())
+    {
+        error_details = std::move(error_msg);
+    }
+    else
+    {
+        error_details = std::nullopt;
+    }
+}
+
+void Job::set_next_attempt(std::optional<std::chrono::system_clock::time_point> next_attempt)
+{
+    if (next_attempt.has_value())
+    {
+        next_execution_at = std::move(next_attempt);
+    }
+    else
+    {
+        next_execution_at = std::nullopt;
+    }
+}

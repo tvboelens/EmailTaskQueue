@@ -50,6 +50,9 @@ public:
     void increase_attempts();
     void set_latest_attempt_to_now();
     void set_state(const std::string &state_);
+    void set_queue(const std::string &queue_);
+    void set_error_details(std::optional<std::string> error_msg);
+    void set_next_attempt(std::optional<std::chrono::system_clock::time_point> next_attempt);
 };
 
 #endif // JOB_H
