@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <spdlog/spdlog.h>
 #include <random>
-#include <sqlite3.h>
+
 
 // Constructor - Assigns a unique ID and sets args
 Job::Job(const json &args_,
@@ -51,16 +51,22 @@ Job::Job(const std::string &id_,
     created_at = std::chrono::system_clock::now();
 }
 
-// TODO: Pass db connection to save() instead of establishing own connection.
-void Job::save() const{
-    sqlite3 *db;
+void Job::save(sqlite3 *db) const
+{
     sqlite3_stmt *stmt;
     char *errMsg = nullptr;
-
-    if (sqlite3_open("database.db", &db) != SQLITE_OK)
+    bool connection_passed = true;
+    // Connect to database.db if no connection is passed
+    if (db==nullptr)
     {
-        spdlog::error("Failed to open database.");
-        return;
+        connection_passed = false;
+        spdlog::info("No connection passed, connecting to database.db, job id = {}", id);
+        if (sqlite3_open("database.db", &db) != SQLITE_OK)
+        {
+            spdlog::error("Failed to open database.");
+            return;
+        }    
+        
     }
 
     // SQL INSERT statement using prepared statements
@@ -151,7 +157,11 @@ void Job::save() const{
 
     // Clean up
     sqlite3_finalize(stmt);
-    sqlite3_close(db);
+    // Only close database connection if it was opened by worker itself
+    if (!connection_passed)
+    {
+        sqlite3_close(db);
+    }
 }
 
 std::string Job::get_id() const

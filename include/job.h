@@ -4,6 +4,7 @@
 #include <chrono>
 #include <string>
 #include <nlohmann/json.hpp>
+#include <sqlite3.h>
 #include "randomhex.h"
 
 using json = nlohmann::json;
@@ -43,7 +44,7 @@ public:
         const std::string &state_ = "waiting",
         std::optional<std::string> error_details_ = std::nullopt,
         std::optional<std::string> reserved_by_ = std::nullopt);
-    void save() const;
+    void save(sqlite3 *db = nullptr) const;
     std::string get_id() const;
     void set_reserved_by(std::optional<std::string> worker_id);
     void increase_attempts();

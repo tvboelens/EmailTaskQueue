@@ -107,6 +107,6 @@ void Worker::cleanup_job(Job &job)
     job.set_latest_attempt_to_now();
     job.set_state("succeeded");
     spdlog::info("Done cleaning up job {}, saving...", job.get_id());
-    job.save();
+    job.save(db);
     spdlog::info("Saved job: {}", job.get_id());
 }
