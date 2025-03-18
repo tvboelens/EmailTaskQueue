@@ -24,6 +24,7 @@ set(SOURCES
     src/queueable.cpp
     src/job.cpp
     src/randomhex.cpp
+    src/chronotostring.cpp
 )
 
 # Define the executable
