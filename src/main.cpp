@@ -6,6 +6,7 @@
 #include "../include/worker.h"
 #include "../include/queueable.h"
 #include <spdlog/spdlog.h>
+#include <chrono>
 
 using json = nlohmann::json;
 
@@ -83,14 +84,16 @@ int main()
         return 1;}
     }
 
+    //sleep(30);
+
     json args = {{"name", "some_name"},{"task", "email"}, {"recipient", "user@example.com"}};
     Queueable q;
     q.dispatch(args);
     q.dispatch(args);
     q.dispatch(args);
 
-    Worker w;
-    w.run();
+    //Worker w;
+    //w.run();
 
     /*
     // Load JSON data from the file

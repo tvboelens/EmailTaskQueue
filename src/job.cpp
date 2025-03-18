@@ -1,4 +1,5 @@
 #include "../include/job.h"
+#include "../include/chronotostring.h"
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -50,7 +51,7 @@ Job::Job(const std::string &id_,
     created_at = std::chrono::system_clock::now();
 }
 
-
+// TODO: Pass db connection to save() instead of establishing own connection.
 void Job::save() const{
     sqlite3 *db;
     sqlite3_stmt *stmt;
@@ -64,7 +65,23 @@ void Job::save() const{
 
     // TODO: This SQL statement has to be modified to update table instead of inserting
     // SQL INSERT statement using prepared statements
-    const char *sql = "INSERT INTO jobs (name, id, args, state) VALUES ('Job', ?, ?, 'waiting');";
+    const char *sql = R"(
+    INSERT INTO jobs (
+        id, name, args, queue, created_at, next_execution_at, 
+        last_executed_at, attempts, state, error_details, reserved_by
+    ) VALUES (?, 'Job', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET 
+        name = 'Job', 
+        args = excluded.args,
+        queue = excluded.queue,
+        created_at = excluded.created_at,
+        next_execution_at = excluded.next_execution_at,
+        last_executed_at = excluded.last_executed_at,
+        attempts = excluded.attempts,
+        state = excluded.state,
+        error_details = excluded.error_details,
+        reserved_by = excluded.reserved_by;
+)";
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
     {
@@ -73,10 +90,54 @@ void Job::save() const{
         return;
     }
 
-    // Bind values safely
-    sqlite3_bind_text(stmt, 1, id.c_str(), -1, SQLITE_STATIC);
-    std::string args_str = args.dump();
-    sqlite3_bind_text(stmt, 2, args_str.c_str(), -1, SQLITE_STATIC);
+    // Bind values to the placeholders
+    sqlite3_bind_text(stmt, 1, id.c_str(), -1, SQLITE_STATIC);                           // id
+    sqlite3_bind_text(stmt, 2, args.dump().c_str(), -1, SQLITE_STATIC);                  // args (JSON serialized to string)
+    sqlite3_bind_text(stmt, 3, queue.c_str(), -1, SQLITE_STATIC);                        // queue
+    sqlite3_bind_text(stmt, 4, chrono_to_string(created_at).c_str(), -1, SQLITE_STATIC); // created_at
+
+    // Bind next_execution_at (nullable)
+    if (next_execution_at)
+    {
+        sqlite3_bind_text(stmt, 5, chrono_to_string(*next_execution_at).c_str(), -1, SQLITE_STATIC);
+    }
+    else
+    {
+        sqlite3_bind_null(stmt, 5); // NULL if no value
+    }
+
+    // Bind last_executed_at (nullable)
+    if (last_executed_at)
+    {
+        sqlite3_bind_text(stmt, 6, chrono_to_string(*last_executed_at).c_str(), -1, SQLITE_STATIC);
+    }
+    else
+    {
+        sqlite3_bind_null(stmt, 6); // NULL if no value
+    }
+
+    sqlite3_bind_int(stmt, 7, attempts);                          // attempts
+    sqlite3_bind_text(stmt, 8, state.c_str(), -1, SQLITE_STATIC); // state
+
+    // Bind error_details (nullable)
+    if (error_details)
+    {
+        sqlite3_bind_text(stmt, 9, error_details->c_str(), -1, SQLITE_STATIC);
+    }
+    else
+    {
+        sqlite3_bind_null(stmt, 9); // NULL if no value
+    }
+
+    // Bind reserved_by (nullable)
+    if (reserved_by)
+    {
+        sqlite3_bind_text(stmt, 10, reserved_by->c_str(), -1, SQLITE_STATIC);
+    }
+    else
+    {
+        sqlite3_bind_null(stmt, 10); // NULL if no value
+    }
 
     // Execute the statement
     if (sqlite3_step(stmt) != SQLITE_DONE)
