@@ -1,6 +1,7 @@
 #include "../include/email_sender.h"
 #include <curl/curl.h>
-#include <iostream>
+//#include <iostream>
+#include <spdlog/spdlog.h>
 
 // Struct to track reading progress
 struct UploadStatus
@@ -77,7 +78,8 @@ void send_email(const std::string &from_email,
         // Enable SSL/TLS (for secure connection)
         curl_easy_setopt(curl, CURLOPT_USE_SSL, (long)CURLUSESSL_ALL);
 
-        std::cout << "Sending email to " << to_email.c_str() << std::endl;
+        spdlog::info("Sending email to {}", to_email.c_str());
+        // std::cout << "Sending email to " << to_email.c_str() << std::endl;
 
         // Send the email
         res = curl_easy_perform(curl);
@@ -85,11 +87,13 @@ void send_email(const std::string &from_email,
         // Check for errors
         if (res != CURLE_OK)
         {
-            std::cerr << "Email sending failed: " << curl_easy_strerror(res) << std::endl;
+            spdlog::error("Email sending failed: {}", curl_easy_strerror(res));
+            // std::cerr << "Email sending failed: " << curl_easy_strerror(res) << std::endl;
         }
         else
         {
-            std::cout << "Email sent successfully!" << std::endl;
+            spdlog::info("Email sent successfully!");
+            // std::cout << "Email sent successfully!" << std::endl;
         }
 
         // Clean up
@@ -98,7 +102,8 @@ void send_email(const std::string &from_email,
     }
     else
     {
-        std::cerr << "Failed to initialize curl." << std::endl;
+        spdlog::error("Failed to initialize curl.");
+        // std::cerr << "Failed to initialize curl." << std::endl;
     }
 
     // Cleanup global curl environment
