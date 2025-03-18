@@ -92,8 +92,8 @@ int main()
     q.dispatch(args);
     q.dispatch(args);
 
-    //Worker w;
-    //w.run();
+    Worker w;
+    w.run();
 
     /*
     // Load JSON data from the file

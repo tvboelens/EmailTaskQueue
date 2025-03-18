@@ -63,7 +63,6 @@ void Job::save() const{
         return;
     }
 
-    // TODO: This SQL statement has to be modified to update table instead of inserting
     // SQL INSERT statement using prepared statements
     const char *sql = R"(
     INSERT INTO jobs (
@@ -92,7 +91,8 @@ void Job::save() const{
 
     // Bind values to the placeholders
     sqlite3_bind_text(stmt, 1, id.c_str(), -1, SQLITE_STATIC);                           // id
-    sqlite3_bind_text(stmt, 2, args.dump().c_str(), -1, SQLITE_STATIC);                  // args (JSON serialized to string)
+    std::string args_str = args.dump();                                                  // Serialize JSON to string
+    sqlite3_bind_text(stmt, 2, args_str.c_str(), -1, SQLITE_STATIC);                     // args (JSON serialized to string)
     sqlite3_bind_text(stmt, 3, queue.c_str(), -1, SQLITE_STATIC);                        // queue
     sqlite3_bind_text(stmt, 4, chrono_to_string(created_at).c_str(), -1, SQLITE_STATIC); // created_at
 
