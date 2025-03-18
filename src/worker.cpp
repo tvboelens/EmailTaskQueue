@@ -101,7 +101,7 @@ std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
 
 void Worker::cleanup_job(Job &job)
 {
-    job.set_reserved_by(std::nullopt);
+    job.set_reserved_by(worker_id);
     job.increase_attempts();
     std::chrono::system_clock::time_point time = std::chrono::system_clock::now();
     job.set_latest_attempt_to_now();
