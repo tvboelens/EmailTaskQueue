@@ -62,7 +62,10 @@ std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
         SET reserved_by = ? 
         WHERE id = (
             SELECT id FROM jobs 
-            WHERE reserved_by IS NULL AND state = 'waiting'
+            WHERE reserved_by IS NULL 
+            AND state = 'waiting'
+            AND (next_execution_at IS NULL OR next_execution_at <= CURRENT_TIMESTAMP)
+            ORDER BY created_at ASC         -- Retrieve job which was created first
             LIMIT 1
         )
         RETURNING id, args, reserved_by, state;
