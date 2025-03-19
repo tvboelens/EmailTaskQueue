@@ -40,7 +40,7 @@ void Worker::run()
         if (job!=0)
         {
             spdlog::info("Executing job: {}", job->get_id());
-            // execute_job(*job);
+            execute_job(*job);
             cleanup_job(*job);
             counter += 1;
         }
@@ -107,7 +107,7 @@ void Worker::execute_job(const Job &job)
 {
     std::unique_ptr<Queueable> q = registry->createQueueable(job.get_name());
     q->handle();
-    spdlog::info("Processed job id = {}, result = succeeded, args = {}", job.get_id(), job.get_args());
+    spdlog::info("Processed job id = {}, result = succeeded, args = {}", job.get_id(), job.get_args().dump());
 }
 
 void Worker::cleanup_job(Job &job)
