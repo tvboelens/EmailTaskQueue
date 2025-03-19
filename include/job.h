@@ -14,8 +14,8 @@ class Job
 // Database column names as job attributes
 private:
     std::string id;
-    std::string name;
-    std::string queue;
+    std::string name;                                                           // Name of Queueable subclass, which the job handles
+    std::string queue;                                                          // Queue name (indicates priority)
     json args;
     int attempts;
     std::chrono::system_clock::time_point created_at;
@@ -23,10 +23,11 @@ private:
     std::optional<std::chrono::system_clock::time_point> last_executed_at;
     std::string state;
     std::optional<std::string> error_details;
-    std::optional<std::string> reserved_by;
+    std::optional<std::string> reserved_by;                                     //id of worker which wants to execute this job
 
 public:
     Job(const json &args_,
+        const std::string &name_ = "Queueable",
         const std::string &queue_ = "default",
         const int &attempts_ = 0,
         std::optional<std::chrono::system_clock::time_point> next_execution_at_ = std::nullopt,
@@ -36,6 +37,7 @@ public:
         std::optional<std::string> reserved_by_ = std::nullopt);
     Job(const std::string &id_,
         const json &args_,
+        const std::string &name_ = "Queueable",
         const std::string &queue_ = "default",
         const int &attempts_ = 0,
         std::optional<std::chrono::system_clock::time_point> next_execution_at_ = std::nullopt,
