@@ -12,7 +12,6 @@ using json = nlohmann::json;
 class Job
 {
 // Database column names as job attributes
-// TODO: Are getter methods necessary and if so, which ones?
 private:
     std::string id;
     std::string name;
@@ -46,6 +45,8 @@ public:
         std::optional<std::string> reserved_by_ = std::nullopt);
     void save(sqlite3 *db = nullptr) const;
     std::string get_id() const;
+    std::string get_name() const;
+    json get_args() const;
     void set_reserved_by(std::optional<std::string> worker_id);
     void increase_attempts();
     void set_latest_attempt_to_now();

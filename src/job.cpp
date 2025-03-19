@@ -6,7 +6,6 @@
 #include <spdlog/spdlog.h>
 #include <random>
 
-
 // Constructor - Assigns a unique ID and sets args
 Job::Job(const json &args_,
          const std::string &queue_,
@@ -167,6 +166,17 @@ void Job::save(sqlite3 *db) const
 std::string Job::get_id() const
 {
     return id;
+}
+
+
+std::string Job::get_name() const
+{
+    return name;
+}
+
+json Job::get_args() const
+{
+    return args;
 }
 
 void Job::set_reserved_by(std::optional<std::string> worker_id)
