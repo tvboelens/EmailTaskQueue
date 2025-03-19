@@ -5,6 +5,7 @@
 #include <sqlite3.h>
 #include "job.h"
 #include "randomhex.h"
+#include "queueable.h"
 
 
 
@@ -14,9 +15,10 @@ private:
     int polling_interval;
     std::string worker_id;
     sqlite3 *db;
+    const QueueableRegistry *registry;
 
 public:
-    Worker();
+    Worker(const QueueableRegistry &registry_);
     ~Worker();
     // Prevent copying
     Worker(const Worker &) = delete;
@@ -24,7 +26,7 @@ public:
     
     void run();
     std::unique_ptr<Job> next_job(sqlite3 *db);
-    //void execute_job(const Job &job);
+    void execute_job(const Job &job);
     void cleanup_job(Job &job);
 };
 

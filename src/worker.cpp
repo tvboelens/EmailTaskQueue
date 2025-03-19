@@ -4,7 +4,7 @@
 #include <spdlog/spdlog.h>
 #include <unistd.h>
 
-Worker::Worker()
+Worker::Worker(const QueueableRegistry &registry_): registry{&registry_}
 {
     polling_interval = 5; // Check for new jobs every 5s
     worker_id = "wrk_" + generateHex(8);
@@ -68,7 +68,7 @@ std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
             ORDER BY created_at ASC         -- Retrieve job which was created first
             LIMIT 1
         )
-        RETURNING id, args, reserved_by, state;
+        RETURNING id, args, name, state;
     )";
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) == SQLITE_OK)
@@ -80,6 +80,7 @@ std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
             std::string id = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
             std::string args_str = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
             json args = nlohmann::json::parse(args_str);
+            std::string name = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
             std::unique_ptr<Job> job{new Job{id, args}};
             spdlog::info("Fetched next job: {}", job->get_id());
             sqlite3_finalize(stmt);
@@ -100,6 +101,13 @@ std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
 
     sqlite3_finalize(stmt);
     return nullptr;
+}
+
+void Worker::execute_job(const Job &job)
+{
+    std::unique_ptr<Queueable> q = registry->createQueueable(job.get_name());
+    q->handle();
+    spdlog::info("Processed job id = {}, result = succeeded, args = {}", job.get_id(), job.get_args());
 }
 
 void Worker::cleanup_job(Job &job)
