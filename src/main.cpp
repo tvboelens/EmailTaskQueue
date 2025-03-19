@@ -84,7 +84,10 @@ int main()
         return 1;}
     }
 
-    //sleep(30);
+    QueueableFactory factory = []() { return std::make_unique<Queueable>(); };
+    QueueableRegistry registry;
+    registry.registerQueueable("Queueable", factory);
+    // sleep(30);
 
     json args = {{"name", "some_name"},{"task", "email"}, {"recipient", "user@example.com"}};
     Queueable q;
@@ -92,7 +95,7 @@ int main()
     q.dispatch(args);
     q.dispatch(args);
 
-    Worker w;
+    Worker w(registry);
     w.run();
 
     /*
