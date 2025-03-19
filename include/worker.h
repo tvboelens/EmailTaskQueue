@@ -26,8 +26,8 @@ public:
     
     void run();
     std::unique_ptr<Job> next_job(sqlite3 *db);
-    void execute_job(const Job &job);
-    void cleanup_job(Job &job);
+    void execute_job(Job &job);
+    void cleanup_job(Job &job, bool succeeded=true);
 };
 
 

@@ -103,21 +103,47 @@ std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
     return nullptr;
 }
 
-void Worker::execute_job(const Job &job)
+void Worker::execute_job(Job &job)
 {
-    std::unique_ptr<Queueable> q = registry->createQueueable(job.get_name());
-    q->handle();
-    spdlog::info("Processed job id = {}, result = succeeded, args = {}", job.get_id(), job.get_args().dump());
+    std::string name{job.get_name()};
+    try
+    {
+        std::unique_ptr<Queueable> q = registry->createQueueable(name);
+        q->handle();
+        spdlog::info("Processed job id = {}, result = succeeded, args = {}", job.get_id(), job.get_args().dump());
+        cleanup_job(job);
+    }
+    catch (const std::out_of_range &e)
+    {
+        spdlog::error("Could not execute job with id = {}, class name = {} not registered", job.get_id(), name);
+        std::string error_msg = "Could not create class with name " + name + " since it was not registered ";
+        job.set_error_details(error_msg);
+        cleanup_job(job, false);
+        return;
+    }
+    catch (const std::bad_function_call &e)
+    {
+        spdlog::error("Could not execute job with id = {}, factory for class with name = {} not properly defined", job.get_id(), name);
+        std::string error_msg = "Could not create class with name " + name + " since its factory was not properly defined";
+        job.set_error_details(error_msg);
+        cleanup_job(job, false);
+        return;
+    }
 }
 
-void Worker::cleanup_job(Job &job)
+void Worker::cleanup_job(Job &job, bool succeeded)
 {
-    job.set_reserved_by(worker_id);
+    job.set_reserved_by(std::nullopt);
     job.increase_attempts();
     std::chrono::system_clock::time_point time = std::chrono::system_clock::now();
     job.set_latest_attempt_to_now();
-    job.set_state("succeeded");
-    spdlog::info("Done cleaning up job {}, saving...", job.get_id());
+    if (succeeded){
+        job.set_state("succeeded");
+    }
+    else
+    {
+        job.set_state("failed");
+    }
+    spdlog::info("Done cleaning up job {} with name = {}, saving...", job.get_id(), job.get_name());
     job.save(db);
-    spdlog::info("Saved job: {}", job.get_id());
 }
