@@ -142,7 +142,7 @@ void Worker::execute_job(Job &job)
         }
         catch (const std::exception &e)
         {
-            spdlog::error("Worker {} could not execute job with id = {}, caught exception of type = {}", worker_id, job.get_id(), e.what());
+            spdlog::error("Worker {} could not execute job with id = {}, caught exception with message '{}'", worker_id, job.get_id(), e.what());
             std::string error_msg = "Could not create class with name " + name + ", caught exception of type " + e.what();
             job.set_error_details(error_msg);
             cleanup_job(job, false);
