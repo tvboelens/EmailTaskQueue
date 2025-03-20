@@ -39,7 +39,7 @@ void Worker::run()
         std::unique_ptr<Job> job = next_job(db);
         if (job!=0)
         {
-            spdlog::info("Executing job: {}", job->get_id());
+            spdlog::info("Executing job: {} with name = {}", job->get_id(), job->get_name());
             execute_job(*job);
             cleanup_job(*job);
             counter += 1;
@@ -55,7 +55,7 @@ void Worker::run()
 }
 
 std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
-    
+    // SQL statement to retrieve job from database
     sqlite3_stmt *stmt;
     const char *sql = R"(
         UPDATE Jobs 
@@ -81,7 +81,7 @@ std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
             std::string args_str = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
             json args = nlohmann::json::parse(args_str);
             std::string name = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
-            std::unique_ptr<Job> job{new Job{id, args}};
+            std::unique_ptr<Job> job{new Job{id, args, name}};
             spdlog::info("Fetched next job: {}", job->get_id());
             sqlite3_finalize(stmt);
             return job;
@@ -106,10 +106,11 @@ std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
 void Worker::execute_job(Job &job)
 {
     std::string name{job.get_name()};
+    // Create the object which performs the task and handle possible exceptions that are thrown during creation
     try
     {
         std::unique_ptr<Queueable> q = registry->createQueueable(name);
-        q->handle();
+        q->handle(job.get_args()); // Execute task
         spdlog::info("Processed job id = {}, result = succeeded, args = {}", job.get_id(), job.get_args().dump());
         cleanup_job(job);
     }
@@ -129,11 +130,38 @@ void Worker::execute_job(Job &job)
         cleanup_job(job, false);
         return;
     }
+    catch(...)
+    {
+        std::exception_ptr exPtr = std::current_exception();
+        try 
+        {
+            if (exPtr)
+            {
+                std::rethrow_exception(exPtr);
+            }
+        }
+        catch (const std::exception &e)
+        {
+            spdlog::error("Could not execute job with id = {}, caught exception of type = {}", job.get_id(), e.what());
+            std::string error_msg = "Could not create class with name " + name + ", caught exception of type " + e.what();
+            job.set_error_details(error_msg);
+            cleanup_job(job, false);
+            return;
+        }
+        catch (...)
+        {
+            spdlog::error("Could not execute job with id = {}, caught exception of unknown type", job.get_id());
+            std::string error_msg = "Could not create class with name " + name + ", caught exception of unknown type.";
+            job.set_error_details(error_msg);
+            cleanup_job(job, false);
+            return;
+        }
+    }
 }
 
 void Worker::cleanup_job(Job &job, bool succeeded)
 {
-    job.set_reserved_by(std::nullopt);
+    job.set_reserved_by(std::nullopt);  // Set job as not reserved by any worker
     job.increase_attempts();
     std::chrono::system_clock::time_point time = std::chrono::system_clock::now();
     job.set_latest_attempt_to_now();
