@@ -61,10 +61,9 @@ void Job::save(sqlite3 *db) const
     if (db==nullptr)
     {
         connection_passed = false;
-        spdlog::info("No connection passed, connecting to database.db, job id = {}", id);
         if (sqlite3_open("database.db", &db) != SQLITE_OK)
         {
-            spdlog::error("Failed to open database.");
+            spdlog::error("Failed to open database. Cannot save job with job id = {}", id);
             return;
         }    
         
@@ -91,7 +90,7 @@ void Job::save(sqlite3 *db) const
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
     {
-        spdlog::error("Failed to prepare statement: {}", sqlite3_errmsg(db));
+        spdlog::error("Failed to prepare statement: {}, job id = {}", sqlite3_errmsg(db), id);
         sqlite3_close(db);
         return;
     }
@@ -150,7 +149,7 @@ void Job::save(sqlite3 *db) const
     // Execute the statement
     if (sqlite3_step(stmt) != SQLITE_DONE)
     {
-        spdlog::error("Failed to insert job: {}", sqlite3_errmsg(db));
+        spdlog::error("Failed to insert job: {}, job id = {}", sqlite3_errmsg(db),id);
     }
     else
     {

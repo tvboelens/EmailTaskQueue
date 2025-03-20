@@ -17,7 +17,7 @@ Worker::~Worker()
     {
         sqlite3_close_v2(db);
         db = nullptr;
-        spdlog::info("Shut down database connection: {}", worker_id);
+        spdlog::info("Shut down database connection: Worker {}", worker_id);
     }
 }
 
@@ -27,7 +27,7 @@ void Worker::run()
     spdlog::info("Worker {} ready", worker_id);
     if (sqlite3_open("database.db", &db) != SQLITE_OK)
     {
-        spdlog::error("Failed to open database.");
+        spdlog::error("Failed to open database. Worker id = {}", worker_id);
         return;
     }
     else{
@@ -37,9 +37,9 @@ void Worker::run()
     do
     {
         std::unique_ptr<Job> job = next_job(db);
-        if (job!=0)
+        if (job != 0)
         {
-            spdlog::info("Executing job: {} with name = {}", job->get_id(), job->get_name());
+            spdlog::info("Worker {} executing job: {} with name = {}", worker_id, job->get_id(), job->get_name());
             execute_job(*job);
             cleanup_job(*job);
             counter += 1;
@@ -82,20 +82,20 @@ std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
             json args = nlohmann::json::parse(args_str);
             std::string name = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
             std::unique_ptr<Job> job{new Job{id, args, name}};
-            spdlog::info("Fetched next job: {}", job->get_id());
+            spdlog::info("Worker {}. Fetched next job: {}", worker_id, job->get_id());
             sqlite3_finalize(stmt);
             return job;
         }
         else
         {
-            spdlog::warn("No pending jobs found.");
+            spdlog::warn("Worker {}. No pending jobs found.", worker_id);
             sqlite3_finalize(stmt);
             return nullptr;
         }
     }
     else
     {
-        spdlog::error("Failed to fetch job from database.");
+        spdlog::error("Worker {}. Failed to fetch job from database.", worker_id);
         return nullptr;
     }
 
@@ -111,12 +111,12 @@ void Worker::execute_job(Job &job)
     {
         std::unique_ptr<Queueable> q = registry->createQueueable(name);
         q->handle(job.get_args()); // Execute task
-        spdlog::info("Processed job id = {}, result = succeeded, args = {}", job.get_id(), job.get_args().dump());
+        spdlog::info("Worker {}. Processed job id = {}, result = succeeded, args = {}", worker_id, job.get_id(), job.get_args().dump());
         cleanup_job(job);
     }
     catch (const std::out_of_range &e)
     {
-        spdlog::error("Could not execute job with id = {}, class name = {} not registered", job.get_id(), name);
+        spdlog::error("Worker {} could not execute job with id = {}, class name = {} not registered", worker_id, job.get_id(), name);
         std::string error_msg = "Could not create class with name " + name + " since it was not registered ";
         job.set_error_details(error_msg);
         cleanup_job(job, false);
@@ -124,7 +124,7 @@ void Worker::execute_job(Job &job)
     }
     catch (const std::bad_function_call &e)
     {
-        spdlog::error("Could not execute job with id = {}, factory for class with name = {} not properly defined", job.get_id(), name);
+        spdlog::error("Worker {} could not execute job with id = {}, factory for class with name = {} not properly defined", worker_id, job.get_id(), name);
         std::string error_msg = "Could not create class with name " + name + " since its factory was not properly defined";
         job.set_error_details(error_msg);
         cleanup_job(job, false);
@@ -142,7 +142,7 @@ void Worker::execute_job(Job &job)
         }
         catch (const std::exception &e)
         {
-            spdlog::error("Could not execute job with id = {}, caught exception of type = {}", job.get_id(), e.what());
+            spdlog::error("Worker {} could not execute job with id = {}, caught exception of type = {}", worker_id, job.get_id(), e.what());
             std::string error_msg = "Could not create class with name " + name + ", caught exception of type " + e.what();
             job.set_error_details(error_msg);
             cleanup_job(job, false);
@@ -150,7 +150,7 @@ void Worker::execute_job(Job &job)
         }
         catch (...)
         {
-            spdlog::error("Could not execute job with id = {}, caught exception of unknown type", job.get_id());
+            spdlog::error("Worker {} could not execute job with id = {}, caught exception of unknown type", job.get_id());
             std::string error_msg = "Could not create class with name " + name + ", caught exception of unknown type.";
             job.set_error_details(error_msg);
             cleanup_job(job, false);
@@ -172,6 +172,6 @@ void Worker::cleanup_job(Job &job, bool succeeded)
     {
         job.set_state("failed");
     }
-    spdlog::info("Done cleaning up job {} with name = {}, saving...", job.get_id(), job.get_name());
+    spdlog::info("Worker {}. Done cleaning up job {} with name = {}, saving...", worker_id, job.get_id(), job.get_name());
     job.save(db);
 }
