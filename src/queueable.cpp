@@ -5,14 +5,13 @@ Queueable::Queueable(/* args */)
 {
 }
 // TODO: I think dispatch needs to have the name as variable as well
-void Queueable::dispatch(const json &args){
-    Job job{args};
-    //spdlog::info("args={}", job->args);
+void Queueable::dispatch(const json &args, const std::string &name){
+    Job job{args, name};
     job.save();
-    spdlog::info("Enqueued job id={}, args = ", job.get_id(), job.get_args().dump());
+    spdlog::info("Enqueued job id={}, args = {}, name = {}", job.get_id(), job.get_args().dump(),name);
 }
 
-void Queueable::handle()
+void Queueable::handle(const json &args)
 {
 }
 
@@ -33,4 +32,29 @@ void QueueableRegistry::registerQueueable(const std::string &name, QueueableFact
 std::unique_ptr<Queueable> QueueableRegistry::createQueueable(const std::string &name) const
 {    
     return registry.at(name)();
+}
+
+// LogQueueable class
+LogQueueable::LogQueueable()
+{
+}
+/*
+LogQueueable::LogQueueable(const std::string &log_msg_): log_msg{log_msg_}
+{
+}
+*/
+
+LogQueueable::~LogQueueable()
+{
+}
+
+void LogQueueable::dispatch(const json &args)
+{
+    Queueable::dispatch(args, "LogQueueable");
+}
+
+void LogQueueable::handle(const json& args)
+{
+    sleep(2);
+    spdlog::info("LogQueueable #{}", args.dump());
 }
