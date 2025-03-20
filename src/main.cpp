@@ -7,6 +7,7 @@
 #include "../include/queueable.h"
 #include <spdlog/spdlog.h>
 #include <chrono>
+#include <thread>
 
 using json = nlohmann::json;
 
@@ -86,17 +87,32 @@ int main()
 
     QueueableFactory factory = []() { return std::make_unique<Queueable>(); };
     QueueableRegistry registry;
+    QueueableFactory logfactory = []() { return std::make_unique<LogQueueable>(); };
     registry.registerQueueable("Queueable", factory);
+    registry.registerQueueable("LogQueueable", logfactory);
     // sleep(30);
 
     json args = {{"name", "some_name"},{"task", "email"}, {"recipient", "user@example.com"}};
-    Queueable q;
-    q.dispatch(args);
-    q.dispatch(args);
-    q.dispatch(args);
+    //Queueable q;
+    LogQueueable lq;
+    for (int i = 0; i <= 5; ++i)
+    {
+        std::string job_no = std::to_string(i);
+        args = {{"job_number", job_no}};
+        lq.dispatch(args);
+    }
+    //q.dispatch(args);
+    //q.dispatch(args);
+    //q.dispatch(args);
 
-    Worker w(registry);
-    w.run();
+    Worker w1(registry);
+    Worker w2(registry);
+
+    std::thread workerThread1(&Worker::run, &w1);
+    std::thread workerThread2(&Worker::run, &w2);
+
+    workerThread1.join();
+    workerThread2.join();
 
     /*
     // Load JSON data from the file
