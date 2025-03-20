@@ -56,5 +56,10 @@ void LogQueueable::dispatch(const json &args)
 void LogQueueable::handle(const json& args)
 {
     sleep(2);
+    float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    if (r >= 0.6)
+    {
+        throw std::runtime_error("An error occurred.");
+    }
     spdlog::info("LogQueueable #{}", args.dump());
 }
