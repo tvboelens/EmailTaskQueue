@@ -23,13 +23,9 @@ public:
     void handle(const json &args) override;
 };
 
-SendEmail::SendEmail(/* args */)
-{
-}
 
-SendEmail::~SendEmail()
-{
-}
+
+
 
 
 

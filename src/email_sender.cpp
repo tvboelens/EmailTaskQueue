@@ -28,6 +28,26 @@ size_t payload_source(void *ptr, size_t size, size_t nmemb, void *userp)
     return to_copy;
 }
 
+SendEmail::SendEmail(/* args */)
+{
+}
+
+SendEmail::~SendEmail()
+{
+}
+
+void SendEmail::dispatch(const json &args)
+{
+    Queueable::dispatch(args, "SendEmail");
+}
+
+void SendEmail::handle(const json &args)
+{
+    std::string recipient{args["recipient"]};
+    spdlog::info("Sending mail to {}...", recipient);
+    //send_email(args);
+}
+
 void SendEmail::send_email(const std::string &from_email,
                 const std::string &to_email,
                 const std::string &subject,
