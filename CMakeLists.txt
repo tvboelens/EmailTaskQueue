@@ -20,7 +20,7 @@ find_package(Crow REQUIRED)
 set(SOURCES
     src/main.cpp
     #src/redis_queue.cpp
-    #src/email_sender.cpp
+    src/email_sender.cpp
     src/worker.cpp
     src/queueable.cpp
     src/job.cpp
