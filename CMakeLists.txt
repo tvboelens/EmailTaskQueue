@@ -5,7 +5,7 @@ project(EmailTaskQueue)
 set(CMAKE_CXX_STANDARD 17)
 
 # include necessary directories
-include_directories(/opt/homebrew/Cellar/nlohmann-json/3.11.3/include)
+include_directories(/opt/homebrew/include)
 
 # Find the required packages
 find_package(CURL REQUIRED)
@@ -14,6 +14,7 @@ find_package(Threads REQUIRED)
 find_package(fmt REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(SQLite3 REQUIRED)
+find_package(Crow REQUIRED)
 
 # Add source files
 set(SOURCES
@@ -38,4 +39,5 @@ target_link_libraries(email_task_queue PRIVATE
     fmt::fmt
     nlohmann_json::nlohmann_json
     SQLite::SQLite3
+    Crow::Crow
 )
