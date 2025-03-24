@@ -39,3 +39,6 @@ build/**
 
 # VS Code config files
 .vscode/**
+
+# Environment variables
+*.env
