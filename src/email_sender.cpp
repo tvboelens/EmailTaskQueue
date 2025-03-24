@@ -28,7 +28,7 @@ size_t payload_source(void *ptr, size_t size, size_t nmemb, void *userp)
     return to_copy;
 }
 
-void send_email(const std::string &from_email,
+void SendEmail::send_email(const std::string &from_email,
                 const std::string &to_email,
                 const std::string &subject,
                 const std::string &body,
