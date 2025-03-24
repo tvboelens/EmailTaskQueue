@@ -18,9 +18,10 @@ private:
     std::string worker_id;
     sqlite3 *db;
     const QueueableRegistry *registry;
+    std::optional<json> smtp_credentials;
 
 public:
-    Worker(const QueueableRegistry &registry_);
+    Worker(const QueueableRegistry &registry_, std::optional<json> credentials = std::nullopt);
     ~Worker();
     // Prevent copying
     Worker(const Worker &) = delete;

@@ -28,7 +28,7 @@ size_t payload_source(void *ptr, size_t size, size_t nmemb, void *userp)
     return to_copy;
 }
 
-SendEmail::SendEmail(/* args */)
+SendEmail::SendEmail()
 {
 }
 
@@ -41,21 +41,23 @@ void SendEmail::dispatch(const json &args)
     Queueable::dispatch(args, "SendEmail");
 }
 
-void SendEmail::handle(const json &args)
+void SendEmail::handle(const json &args, const json &credentials)
 {
     std::string recipient{args["recipient"]};
     spdlog::info("Sending mail to {}...", recipient);
-    //send_email(args);
+    send_email(args, credentials);
 }
 
-void SendEmail::send_email(const std::string &from_email,
-                const std::string &to_email,
-                const std::string &subject,
-                const std::string &body,
-                const std::string &smtp_server,
-                const std::string &smtp_user,
-                const std::string &smtp_password)
+void SendEmail::send_email(const json &args, const json &credentials)
 {
+    const std::string from_email{credentials["smtp_user"]};
+    const std::string smtp_server{credentials["smtp_server"]};
+    const std::string smtp_user{credentials["smtp_user"]};
+    const std::string smtp_password{credentials["smtp_password"]};
+    const std::string to_email{args["subject"]};
+    const std::string subject{args["subject"]};
+    const std::string body{args["body"]};
+    
     CURL *curl;
     CURLcode res;
 

@@ -7,20 +7,13 @@
 class SendEmail: public Queueable
 {
 private:
-    /* data */
 public:
-    SendEmail(/* args */);
+    SendEmail();
     ~SendEmail();
     // Function to send an email using libcurl
-    void send_email(const std::string &from_email,
-                    const std::string &to_email,
-                    const std::string &subject,
-                    const std::string &body,
-                    const std::string &smtp_server,
-                    const std::string &smtp_user,
-                    const std::string &smtp_password);
+    void send_email(const json &args, const json &credentials);
     void dispatch(const json &args);
-    void handle(const json &args) override;
+    void handle(const json &args, const json &credentials);
 };
 
 

@@ -84,6 +84,20 @@ int main()
         return 1;}
     }
 
+    json credentials;
+
+    spdlog::info("Fetching environment variables.");
+
+    const char *smtp_user = std::getenv("SMTP_USER");
+    const char *smtp_password = std::getenv("SMTP_PW");
+    const char *smtp_server = std::getenv("SMTP_SERVER");
+
+    spdlog::info("Environment variables fetched.");
+
+    credentials["smtp_user"] = smtp_user;
+    credentials["smtp_password"] = smtp_password;
+    credentials["smtp_server"] = smtp_server;
+
     // Crow web app
     crow::SimpleApp app;
 
@@ -146,8 +160,8 @@ int main()
     //q.dispatch(args);
     //q.dispatch(args); */
 
-    Worker w1(registry);
-    Worker w2(registry);
+    Worker w1(registry, credentials);
+    Worker w2(registry, credentials);
 
     std::thread workerThread1(&Worker::run, &w1);
     std::thread workerThread2(&Worker::run, &w2);

@@ -7,7 +7,7 @@
 // Atomic flag to stop workers gracefully
 std::atomic<bool> stopWorkers{false};
 
-Worker::Worker(const QueueableRegistry &registry_) : registry{&registry_}
+Worker::Worker(const QueueableRegistry &registry_, std::optional<json> credentials) : registry{&registry_}, smtp_credentials{credentials}
 {
     polling_interval = 5; // Check for new jobs every 5s
     worker_id = "wrk_" + generateHex(8);
@@ -112,6 +112,7 @@ void Worker::execute_job(Job &job)
     // Create the object which performs the task and handle possible exceptions that are thrown during creation
     try
     {
+        // TODO: For SendEmail input the credentials into handle().
         std::unique_ptr<Queueable> q = registry->createQueueable(name);
         q->handle(job.get_args()); // Execute task
         spdlog::info("Worker {}. Processed job id = {}, result = succeeded, args = {}", worker_id, job.get_id(), job.get_args().dump());
