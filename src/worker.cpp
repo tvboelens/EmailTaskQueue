@@ -4,7 +4,10 @@
 #include <spdlog/spdlog.h>
 #include <unistd.h>
 
-Worker::Worker(const QueueableRegistry &registry_): registry{&registry_}
+// Atomic flag to stop workers gracefully
+std::atomic<bool> stopWorkers{false};
+
+Worker::Worker(const QueueableRegistry &registry_) : registry{&registry_}
 {
     polling_interval = 5; // Check for new jobs every 5s
     worker_id = "wrk_" + generateHex(8);
@@ -49,7 +52,7 @@ void Worker::run()
             sleep(polling_interval);
             counter += 1;
         }
-    } while (counter<7);
+    } while (!stopWorkers);
     spdlog::info("Worker {} shutting down connection to database", worker_id);
     spdlog::info("Shutting down Worker {}", worker_id);
 }

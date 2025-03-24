@@ -1,13 +1,15 @@
 #ifndef WORKER_H
 #define WORKER_H
 
+#include <atomic>
 #include <memory>
 #include <sqlite3.h>
 #include "job.h"
 #include "randomhex.h"
 #include "queueable.h"
 
-
+// Atomic flag to stop workers gracefully
+extern std::atomic<bool> stopWorkers;
 
 class Worker
 {

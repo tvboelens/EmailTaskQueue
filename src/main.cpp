@@ -70,8 +70,6 @@ bool createJobsTable(sqlite3 *db)
 
 int main()
 {
-    
-    
     // Open an SQLite database (or create it if it doesn't exist)
     sqlite3 *db;
 
@@ -86,6 +84,7 @@ int main()
         return 1;}
     }
 
+    // Crow web app
     crow::SimpleApp app;
 
     CROW_ROUTE(app, "/submit_email").methods("POST"_method)
@@ -121,15 +120,16 @@ int main()
         return crow::response(200, "Email task submitted successfully"); 
     });
 
-
-    QueueableFactory factory = []()
-    { return std::make_unique<Queueable>(); };
+    // Register the Queueable (sub)classes
     QueueableRegistry registry;
-    QueueableFactory logfactory = []()
-    { return std::make_unique<LogQueueable>(); };
+    //    QueueableFactory factory = []()
+    //   { return std::make_unique<Queueable>(); };
+    //    registry.registerQueueable("Queueable", factory);
+
+    //    QueueableFactory logfactory = []()
+    //    { return std::make_unique<LogQueueable>(); };
+    //    registry.registerQueueable("LogQueueable", logfactory);
     QueueableFactory emailfactory = []() { return std::make_unique<SendEmail>() ; };
-    registry.registerQueueable("Queueable", factory);
-    registry.registerQueueable("LogQueueable", logfactory);
     registry.registerQueueable("SendEmail", emailfactory);
     // sleep(30);
 
@@ -153,6 +153,10 @@ int main()
     std::thread workerThread2(&Worker::run, &w2);
 
     app.port(8080).multithreaded().run();
+    // The app will run until stopped
+    spdlog::info("Stopping application...");
+    // Set stopWorkers flag to true so that workers will exit the loop in the run() method
+    stopWorkers = true;
 
     workerThread1.join();
     workerThread2.join();
@@ -192,6 +196,6 @@ int main()
     // Call the function to send an email
     send_email(from_email, to_email, subject, body, smtp_server, smtp_user, smtp_password);
     */
-
+    spdlog::info("Application exited cleanly");
     return 0;
 }
