@@ -8,6 +8,7 @@
 #include <spdlog/spdlog.h>
 #include <chrono>
 #include <thread>
+#include <crow.h>
 
 using json = nlohmann::json;
 
@@ -85,15 +86,55 @@ int main()
         return 1;}
     }
 
-    QueueableFactory factory = []() { return std::make_unique<Queueable>(); };
+    crow::SimpleApp app;
+
+    CROW_ROUTE(app, "/submit_email").methods("POST"_method)
+    ([](const crow::request &req){
+        // Parse the JSON body of the POST request
+        auto json_data = json::parse(req.body);
+
+        std::string recipient = json_data["recipient"];
+        std::string subject = json_data["subject"];
+        std::string body = json_data["body"];
+
+        if(recipient.empty())
+        {
+            spdlog::error("Missing recipient");
+            return crow::response(400, "Missing recipient");
+        }
+        
+        if(subject.empty())
+        {
+            spdlog::error("Missing subject");
+            return crow::response(400, "Missing subject");
+        }
+
+        if(body.empty())
+        {
+            spdlog::error("Missing body");
+            return crow::response(400, "Missing body");
+        }
+
+        SendEmail q;
+        q.dispatch(json_data);
+        // Send a response
+        return crow::response(200, "Email task submitted successfully"); 
+    });
+
+
+    QueueableFactory factory = []()
+    { return std::make_unique<Queueable>(); };
     QueueableRegistry registry;
-    QueueableFactory logfactory = []() { return std::make_unique<LogQueueable>(); };
+    QueueableFactory logfactory = []()
+    { return std::make_unique<LogQueueable>(); };
+    QueueableFactory emailfactory = []() { return std::make_unique<SendEmail>() ; };
     registry.registerQueueable("Queueable", factory);
     registry.registerQueueable("LogQueueable", logfactory);
+    registry.registerQueueable("SendEmail", emailfactory);
     // sleep(30);
 
-    json args = {{"name", "some_name"},{"task", "email"}, {"recipient", "user@example.com"}};
-    //Queueable q;
+    /* json args = {{"name", "some_name"}, {"task", "email"}, {"recipient", "user@example.com"}};
+    // Queueable q;
     LogQueueable lq;
     for (int i = 0; i <= 5; ++i)
     {
@@ -103,13 +144,15 @@ int main()
     }
     //q.dispatch(args);
     //q.dispatch(args);
-    //q.dispatch(args);
+    //q.dispatch(args); */
 
     Worker w1(registry);
     Worker w2(registry);
 
     std::thread workerThread1(&Worker::run, &w1);
     std::thread workerThread2(&Worker::run, &w2);
+
+    app.port(8080).multithreaded().run();
 
     workerThread1.join();
     workerThread2.join();
