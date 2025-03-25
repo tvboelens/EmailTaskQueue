@@ -49,6 +49,8 @@ public:
     std::string get_id() const;
     std::string get_name() const;
     json get_args() const;
+    int get_attempts() const;
+    std::optional<std::chrono::system_clock::time_point> get_last_attempt();
     void set_reserved_by(std::optional<std::string> worker_id);
     void increase_attempts();
     void set_latest_attempt_to_now();

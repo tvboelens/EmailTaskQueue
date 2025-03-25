@@ -181,6 +181,16 @@ json Job::get_args() const
     return args;
 }
 
+int Job::get_attempts() const
+{
+    return attempts;
+}
+
+std::optional<std::chrono::system_clock::time_point> Job::get_last_attempt()
+{
+    return last_executed_at;
+}
+
 void Job::set_reserved_by(std::optional<std::string> worker_id)
 {
     reserved_by = std::move(worker_id);
