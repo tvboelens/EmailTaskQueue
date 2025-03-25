@@ -143,6 +143,7 @@ Each job consists of:
 - Add multithreading for parallel job execution (e.g. thread pooling)
 
 - Add configurable retry logic for failed jobs
+- Add multiple queues for different priorities
 
 ## License
 
