@@ -86,13 +86,9 @@ int main()
 
     json credentials;
 
-    spdlog::info("Fetching environment variables.");
-
     const char *smtp_user = std::getenv("SMTP_USER");
     const char *smtp_password = std::getenv("SMTP_PW");
     const char *smtp_server = std::getenv("SMTP_SERVER");
-
-    spdlog::info("Environment variables fetched.");
 
     credentials["smtp_user"] = smtp_user;
     credentials["smtp_password"] = smtp_password;
@@ -101,8 +97,8 @@ int main()
     // Crow web app
     crow::SimpleApp app;
 
-    CROW_ROUTE(app, "/submit_email").methods("POST"_method)
-    ([](const crow::request &req){
+    CROW_ROUTE(app, "/submit_email").methods("POST"_method)([](const crow::request &req)
+                                                            {
         // Parse the JSON body of the POST request
         auto json_data = json::parse(req.body);
 
@@ -131,8 +127,7 @@ int main()
         SendEmail q;
         q.dispatch(json_data);
         // Send a response
-        return crow::response(200, "Email task submitted successfully"); 
-    });
+        return crow::response(200, "Email task submitted successfully"); });
 
     // Register the Queueable (sub)classes
     QueueableRegistry registry;
@@ -175,41 +170,6 @@ int main()
     workerThread1.join();
     workerThread2.join();
 
-    /*
-    // Load JSON data from the file
-    std::ifstream input_file("../data/email_data.json");
-    if (!input_file.is_open())
-    {
-        std::cerr << "Failed to open email_data.json file." << std::endl;
-        return 1;
-    }
-
-    std::ifstream pw_input_file("../data/email_pw.json");
-    if (!pw_input_file.is_open())
-    {
-        std::cerr << "Failed to open email_pw.json file." << std::endl;
-        return 1;
-    }
-
-    // Parse the JSON data
-    json email_data;
-    input_file >> email_data;
-
-    json email_pw;
-    pw_input_file >> email_pw;
-
-    // Extract the email details from the JSON file
-    const std::string from_email = email_data["from_email"];
-    const std::string to_email = email_data["to_email"];
-    const std::string subject = email_data["subject"];
-    const std::string body = email_data["body"];
-    const std::string smtp_server = email_data["smtp_server"];
-    const std::string smtp_user = email_data["smtp_user"];
-    const std::string smtp_password = email_pw["smtp_password"];
-
-    // Call the function to send an email
-    send_email(from_email, to_email, subject, body, smtp_server, smtp_user, smtp_password);
-    */
     spdlog::info("Application exited cleanly");
     return 0;
 }

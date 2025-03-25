@@ -10,7 +10,7 @@ private:
 public:
     Queueable();
     virtual void dispatch(const json &args, const std::string &name = "Queueable"); // TODO: Do I need to put in options?
-    virtual void handle(const json &args);
+    virtual void handle(const json &args, std::optional<json> credentials = std::nullopt);
 };
 
 // QueableFactory and QueueableRegistry provide a way to register subclasses of the Queueable class
@@ -39,7 +39,7 @@ public:
     LogQueueable();
     // LogQueueable(const std::string &log_msg);
     ~LogQueueable();
-    void handle(const json &args) override;
+    void handle(const json &args, std::optional<json> credentials = std::nullopt) override;
     void dispatch(const json &args);
 };
 

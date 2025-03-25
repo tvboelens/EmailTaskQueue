@@ -112,10 +112,18 @@ void Worker::execute_job(Job &job)
     // Create the object which performs the task and handle possible exceptions that are thrown during creation
     try
     {
-        // TODO: For SendEmail input the credentials into handle().
         std::unique_ptr<Queueable> q = registry->createQueueable(name);
-        q->handle(job.get_args()); // Execute task
-        spdlog::info("Worker {}. Processed job id = {}, result = succeeded, args = {}", worker_id, job.get_id(), job.get_args().dump());
+        if (name=="SendEmail")
+        {
+            spdlog::info("Worker {} sending email", worker_id);
+            q->handle(job.get_args(), smtp_credentials);
+        }
+        else
+        {
+            spdlog::info("Executing some other type of job");
+            q->handle(job.get_args()); // Execute task
+        }
+        spdlog::info("Worker {}. Processed job id = {}, result = succeeded, name = {}", worker_id, job.get_id(), job.get_name());
         cleanup_job(job);
     }
     catch (const std::out_of_range &e)

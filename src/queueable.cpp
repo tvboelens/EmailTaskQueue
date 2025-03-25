@@ -11,7 +11,7 @@ void Queueable::dispatch(const json &args, const std::string &name){
     spdlog::info("Enqueued job id={}, args = {}, name = {}", job.get_id(), job.get_args().dump(),name);
 }
 
-void Queueable::handle(const json &args)
+void Queueable::handle(const json &args, std::optional<json> credentials)
 {
 }
 
@@ -53,7 +53,7 @@ void LogQueueable::dispatch(const json &args)
     Queueable::dispatch(args, "LogQueueable");
 }
 
-void LogQueueable::handle(const json& args)
+void LogQueueable::handle(const json& args, std::optional<json> credentials)
 {
     sleep(2);
     float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);

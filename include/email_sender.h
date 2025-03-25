@@ -13,7 +13,7 @@ public:
     // Function to send an email using libcurl
     void send_email(const json &args, const json &credentials);
     void dispatch(const json &args);
-    void handle(const json &args, const json &credentials);
+    void handle(const json &args, std::optional<json> credentials) override;
 };
 
 

@@ -41,20 +41,22 @@ void SendEmail::dispatch(const json &args)
     Queueable::dispatch(args, "SendEmail");
 }
 
-void SendEmail::handle(const json &args, const json &credentials)
+void SendEmail::handle(const json &args, std::optional<json> credentials)
 {
+    json credentials_{credentials.value()};
     std::string recipient{args["recipient"]};
     spdlog::info("Sending mail to {}...", recipient);
-    send_email(args, credentials);
+    send_email(args, credentials_);
 }
 
 void SendEmail::send_email(const json &args, const json &credentials)
 {
+    spdlog::info("Sending email with args = {}", args.dump());
     const std::string from_email{credentials["smtp_user"]};
     const std::string smtp_server{credentials["smtp_server"]};
     const std::string smtp_user{credentials["smtp_user"]};
     const std::string smtp_password{credentials["smtp_password"]};
-    const std::string to_email{args["subject"]};
+    const std::string to_email{args["recipient"]};
     const std::string subject{args["subject"]};
     const std::string body{args["body"]};
     
