@@ -1,6 +1,7 @@
 #ifndef QUEUEABLE_H
 #define QUEUEABLE_H
 
+#include <chrono>
 #include <spdlog/spdlog.h>
 #include "./job.h"
 
@@ -9,7 +10,8 @@ class Queueable
 private:
 public:
     Queueable();
-    virtual void dispatch(const json &args, const std::string &name = "Queueable"); // TODO: Do I need to put in options?
+    virtual void dispatch(const json &args, const std::string &name = "Queueable",
+                          double wait = 0, std::optional<std::chrono::system_clock::time_point> at = std::nullopt);
     virtual void handle(const json &args, std::optional<json> credentials = std::nullopt);
 };
 

@@ -36,9 +36,9 @@ SendEmail::~SendEmail()
 {
 }
 
-void SendEmail::dispatch(const json &args)
+void SendEmail::dispatch(const json &args, double wait, std::optional<std::chrono::system_clock::time_point> at)
 {
-    Queueable::dispatch(args, "SendEmail");
+    Queueable::dispatch(args, "SendEmail", wait, at);
 }
 
 void SendEmail::handle(const json &args, std::optional<json> credentials)

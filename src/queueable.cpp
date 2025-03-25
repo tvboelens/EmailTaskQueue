@@ -4,9 +4,23 @@
 Queueable::Queueable(/* args */)
 {
 }
-// TODO: I think dispatch needs to have the name as variable as well
-void Queueable::dispatch(const json &args, const std::string &name){
+
+void Queueable::dispatch(const json &args, const std::string &name,
+                         double wait, std::optional<std::chrono::system_clock::time_point> at)
+{
     Job job{args, name};
+    if (wait != 0)
+    {
+        std::chrono::system_clock::time_point next_execution{
+            std::chrono::duration_cast<std::chrono::system_clock::duration>(std::chrono::duration<double>(wait)) + 
+            std::chrono::system_clock::now()};
+        job.set_next_attempt(next_execution);
+    }
+    else if (at.has_value())
+    {
+        std::chrono::system_clock::time_point next_execution = at.value();
+        job.set_next_attempt(next_execution);
+    }
     job.save();
     spdlog::info("Enqueued job id={}, args = {}, name = {}", job.get_id(), job.get_args().dump(),name);
 }
