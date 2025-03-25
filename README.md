@@ -49,7 +49,7 @@ cmake -B build -GNinja .
 ninja -C build
 ```
 The target binary is then created in the `build/` folder.
-### Usage
+## Usage
 
 The app uses the SMTP protocol to send e-mails. Before running the following environment variables need to be set, so that the app has the right credentials.
 ```
@@ -65,32 +65,6 @@ Use either of the following two options:
 - SIGTERM: This signal can be sent using the `kill` command from another terminal to gracefully shut down the server.
 
 Both signals are handled by the app to execute a clean exit.
-
-### Job Structure
-
-Each job consists of:
-
-- id (Unique identifier)
-
-- name (Job name)
-
-- args (Serialized JSON arguments)
-
-- queue (Queue category)
-
-- created_at (Timestamp of creation)
-
-- next_execution_at (Scheduled execution time, if applicable)
-
-- last_executed_at (Timestamp of last execution)
-
-- attempts (Retry count)
-
-- state (Job state: waiting, running, failed, completed)
-
-- error_details (If failed, logs error reason)
-
-- reserved_by (Worker processing the job)
 
 ### Email Processing
 
@@ -132,6 +106,34 @@ where `email.json` contains
   "body": "This is a test email body."
 }
 ```
+
+### Job Structure
+
+Each job consists of:
+
+- id (Unique identifier)
+
+- name (Job name)
+
+- args (Serialized JSON arguments)
+
+- queue (Queue category)
+
+- created_at (Timestamp of creation)
+
+- next_execution_at (Scheduled execution time, if applicable)
+
+- last_executed_at (Timestamp of last execution)
+
+- attempts (Retry count)
+
+- state (Job state: waiting, running, failed, completed)
+
+- error_details (If failed, logs error reason)
+
+- reserved_by (Worker processing the job)
+
+
 
 ## Future Improvements
 
