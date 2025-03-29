@@ -72,6 +72,7 @@ void SendEmail::send_email(const json &args, const json &credentials)
         struct curl_slist *recipients = nullptr;
 
         // Set up the SMTP server settings
+        spdlog::info("SMTP Server: {}", smtp_server);
         curl_easy_setopt(curl, CURLOPT_URL, smtp_server.c_str());      // Set SMTP server
         curl_easy_setopt(curl, CURLOPT_MAIL_FROM, from_email.c_str()); // Set sender's email
 

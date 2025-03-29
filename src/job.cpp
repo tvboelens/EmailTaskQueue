@@ -98,7 +98,7 @@ void Job::save(sqlite3 *db) const
     // Bind values to the placeholders
     sqlite3_bind_text(stmt, 1, id.c_str(), -1, SQLITE_STATIC);                           // id
     sqlite3_bind_text(stmt, 2, name.c_str(), -1, SQLITE_STATIC);                         // name
-    std::string args_str = args.dump();                                                  // Serialize JSON to string
+    std::string args_str = args.dump();                                                  
     sqlite3_bind_text(stmt, 3, args_str.c_str(), -1, SQLITE_STATIC);                     // args (JSON serialized to string)
     sqlite3_bind_text(stmt, 4, queue.c_str(), -1, SQLITE_STATIC);                        // queue
     sqlite3_bind_text(stmt, 5, chrono_to_string(created_at).c_str(), -1, SQLITE_STATIC); // created_at
@@ -146,7 +146,6 @@ void Job::save(sqlite3 *db) const
         sqlite3_bind_null(stmt, 11); // NULL if no value
     }
 
-    // Execute the statement
     if (sqlite3_step(stmt) != SQLITE_DONE)
     {
         spdlog::error("Failed to insert job: {}, job id = {}", sqlite3_errmsg(db),id);
@@ -156,7 +155,6 @@ void Job::save(sqlite3 *db) const
         spdlog::info("Job saved to database: {}", id);
     }
 
-    // Clean up
     sqlite3_finalize(stmt);
     // Only close database connection if it was opened by worker itself
     if (!connection_passed)

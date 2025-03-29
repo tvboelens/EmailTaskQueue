@@ -1,6 +1,7 @@
 #ifndef EMAIL_SENDER_H
 #define EMAIL_SENDER_H
 
+#include <optional>
 #include <string>
 #include "queueable.h"
 
