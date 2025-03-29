@@ -42,10 +42,21 @@ void QueueableRegistry::registerQueueable(const std::string &name, QueueableFact
 {
     registry[name] = factory;
 }
+
+void QueueableRegistry::registerRetryStrategy(const std::string &name, const RetryStrategy &strategy)
+{
+    retry_strategy_registry[name] = strategy;
+}
+
 // Factory method. Make sure the class of the to be created object is registered first!
 std::unique_ptr<Queueable> QueueableRegistry::createQueueable(const std::string &name) const
 {    
     return registry.at(name)();
+}
+
+RetryStrategy QueueableRegistry::getRetryStrategy(const std::string &name) const
+{
+    return retry_strategy_registry.at(name);
 }
 
 // LogQueueable class
@@ -71,9 +82,7 @@ void LogQueueable::handle(const json& args, std::optional<json> credentials)
 {
     sleep(2);
     float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-    if (r >= 0.6)
-    {
-        throw std::runtime_error("An error occurred.");
-    }
+    //if (r >= 0.4)
+    throw std::runtime_error("An error occurred.");
     spdlog::info("LogQueueable #{}", args.dump());
 }

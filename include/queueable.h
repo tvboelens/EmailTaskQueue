@@ -2,6 +2,7 @@
 #define QUEUEABLE_H
 
 #include <chrono>
+#include <optional>
 #include <spdlog/spdlog.h>
 #include "./job.h"
 
@@ -15,6 +16,14 @@ public:
     virtual void handle(const json &args, std::optional<json> credentials = std::nullopt);
 };
 
+struct RetryStrategy
+{
+    std::optional<float> interval;
+    std::optional<int> max_retries;
+    std::optional<std::string> queue;
+    std::function<std::optional<double>(int)> block; // TODO: I don't know if the argument list is correct
+};
+
 // QueableFactory and QueueableRegistry provide a way to register subclasses of the Queueable class
 // and then create instances of these via their name
 using QueueableFactory = std::function<std::unique_ptr<Queueable>(void)>;
@@ -23,16 +32,19 @@ class QueueableRegistry
 {
 private:
     std::unordered_map<std::string, QueueableFactory> registry;
+    std::unordered_map<std::string, RetryStrategy> retry_strategy_registry;
 
 public:
     QueueableRegistry(/* args */);
     ~QueueableRegistry();
     void registerQueueable(const std::string &name, QueueableFactory factory);
+    void registerRetryStrategy(const std::string &name, const RetryStrategy &strategy);
     std::unique_ptr<Queueable> createQueueable(const std::string &name) const;
+    RetryStrategy getRetryStrategy(const std::string &name) const;
 };
 
 // Dummy class for experimenting
-class LogQueueable: public Queueable
+class LogQueueable : public Queueable
 {
 private:
     //std::string log_msg;
