@@ -90,13 +90,13 @@ std::unique_ptr<Job> Worker::next_job(sqlite3 *db){
             std::string name = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 2));
             std::string queue = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 3));
             int attempts = sqlite3_column_int(stmt, 4);
-            std::unique_ptr<Job> job{new Job{
+            std::unique_ptr<Job> job{std::make_unique<Job>(
                 id,
                 args,
                 name,
                 queue,
                 attempts
-            }};
+            )};
             spdlog::info("Worker {}. Fetched next job: {}", worker_id, job->get_id());
             sqlite3_finalize(stmt);
             return job;
