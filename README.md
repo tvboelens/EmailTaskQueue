@@ -35,9 +35,9 @@ This project is a job queue system implemented in C++ that allows email sending 
 
 ## Installation
 
-### Building the Project
+### Building the Project on your local machine
 
-If you want to build using only CMake, runt the following commands:
+If you want to build using only CMake, run the following commands:
 ``` 
 mkdir build && cd build
 cmake ..
@@ -49,6 +49,14 @@ cmake -B build -GNinja .
 ninja -C build
 ```
 The target binary is then created in the `build/` folder.
+
+### Building the project in a Docker container
+In the root folder of the project run the following command:
+```
+docker build -t your_image_name:your_tag .
+```
+where `your_image_name` and `your_tag` are your chosen name and tag for the image to build.
+
 ## Usage
 
 The app uses the SMTP protocol to send e-mails. Before running the following environment variables need to be set, so that the app has the right credentials.
@@ -57,6 +65,30 @@ SMTP_USER="your_email@example.com"
 SMTP_SERVER="smtp.example.com"
 SMTP_PW="your_password_or_app_specific_password"
 ```
+
+You can do this for instance by creating a `.env` file with the lines
+```
+export SMTP_USER="your_email@example.com"
+export SMTP_SERVER="smtp.example.com"
+export SMTP_PW="your_password_or_app_specific_password"
+```
+and then running 
+```
+source .env
+```
+
+If you want to run the application in a Docker container, your `.env` file should look slightly different, namely like this:
+```
+SMTP_USER=your_email@example.com
+SMTP_SERVER=smtp.example.com
+SMTP_PW=your_password_or_app_specific_password
+```
+Then run the container via the command
+```
+docker run --env-file .env -p local_port:8080 image_name:tag
+```
+Here `local_port` is the port on your local machine where you want to listen for requests (for example `8080`).
+
 In the current version database configuration is done in `src/main.cpp`. Similarly, the Crow app is configure to run at port 8080 and two workers are started. Change the code for other configurations.
 
 #### Stopping the Application

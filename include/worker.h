@@ -2,6 +2,7 @@
 #define WORKER_H
 
 #include <atomic>
+#include <optional>
 #include <memory>
 #include <sqlite3.h>
 #include "job.h"
@@ -30,13 +31,9 @@ public:
     void run();
     std::unique_ptr<Job> next_job(sqlite3 *db);
     void execute_job(Job &job);
-    void cleanup_job(Job &job, bool succeeded=true);
+    void cleanup_job(Job &job, bool succeeded = true);
+    void set_retry_details(const RetryStrategy& retry_strategy,
+                       Job& job);
 };
-
-
-
-
-
-
 
 #endif // WORKER_H

@@ -43,3 +43,4 @@ build/**
 # Environment variables
 *.env
 *.env_docker
+.env_docker

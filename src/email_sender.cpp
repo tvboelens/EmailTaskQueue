@@ -36,9 +36,9 @@ SendEmail::~SendEmail()
 {
 }
 
-void SendEmail::dispatch(const json &args)
+void SendEmail::dispatch(const json &args, double wait, std::optional<std::chrono::system_clock::time_point> at)
 {
-    Queueable::dispatch(args, "SendEmail");
+    Queueable::dispatch(args, "SendEmail", wait, at);
 }
 
 void SendEmail::handle(const json &args, std::optional<json> credentials)
@@ -72,6 +72,7 @@ void SendEmail::send_email(const json &args, const json &credentials)
         struct curl_slist *recipients = nullptr;
 
         // Set up the SMTP server settings
+        spdlog::info("SMTP Server: {}", smtp_server);
         curl_easy_setopt(curl, CURLOPT_URL, smtp_server.c_str());      // Set SMTP server
         curl_easy_setopt(curl, CURLOPT_MAIL_FROM, from_email.c_str()); // Set sender's email
 

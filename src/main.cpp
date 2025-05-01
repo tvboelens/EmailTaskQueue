@@ -87,8 +87,23 @@ int main()
     json credentials;
 
     const char *smtp_user = std::getenv("SMTP_USER");
+    if (smtp_user == nullptr)
+    {
+        spdlog::error("SMTP_USER not defined");
+        return 1;
+    }
     const char *smtp_password = std::getenv("SMTP_PW");
+    if (smtp_password == nullptr)
+    {
+        spdlog::error("SMTP_PW not defined");
+        return 1;
+    }
     const char *smtp_server = std::getenv("SMTP_SERVER");
+    if (smtp_server == nullptr)
+    {
+        spdlog::error("SMTP_SERVER not defined");
+        return 1;
+    }
 
     credentials["smtp_user"] = smtp_user;
     credentials["smtp_password"] = smtp_password;
@@ -135,25 +150,28 @@ int main()
     //   { return std::make_unique<Queueable>(); };
     //    registry.registerQueueable("Queueable", factory);
 
-    //    QueueableFactory logfactory = []()
-    //    { return std::make_unique<LogQueueable>(); };
-    //    registry.registerQueueable("LogQueueable", logfactory);
-    QueueableFactory emailfactory = []() { return std::make_unique<SendEmail>() ; };
-    registry.registerQueueable("SendEmail", emailfactory);
-    // sleep(30);
+        QueueableFactory logfactory = []()
+        { return std::make_unique<LogQueueable>(); };
+        RetryStrategy log_retry_strategy{-1, 4, std::nullopt, nullptr};
+        registry.registerQueueable("LogQueueable", logfactory);
+        registry.registerRetryStrategy("LogQueueable", log_retry_strategy);
+        QueueableFactory emailfactory = []()
+        { return std::make_unique<SendEmail>(); };
+        registry.registerQueueable("SendEmail", emailfactory);
+        // sleep(30);
 
-    /* json args = {{"name", "some_name"}, {"task", "email"}, {"recipient", "user@example.com"}};
-    // Queueable q;
-    LogQueueable lq;
-    for (int i = 0; i <= 5; ++i)
-    {
-        std::string job_no = std::to_string(i);
-        args = {{"job_number", job_no}};
-        lq.dispatch(args);
-    }
+        json args = {{"name", "some_name"}, {"task", "email"}, {"recipient", "user@example.com"}};
+        // Queueable q;
+        LogQueueable lq;
+        for (int i = 0; i <= 20; ++i)
+        {
+            std::string job_no = std::to_string(i);
+            args = {{"job_number", job_no}};
+            lq.dispatch(args);
+        }
     //q.dispatch(args);
     //q.dispatch(args);
-    //q.dispatch(args); */
+    //q.dispatch(args); 
 
     Worker w1(registry, credentials);
     Worker w2(registry, credentials);
